@@ -15,10 +15,12 @@ db_path = 'photo.db'
 -- key = integer index as used by Shotwell
 -- value = tag in Darktable format
 function tags_to_hash(db)
+  -- Fetch the data from the db.
   statement, err = db:prepare('SELECT id, name FROM TagTable')
   assert(statement, err)
   statement:execute()
 
+  -- Create an accumulator
   local map = {}
 
   -- Reformat the tags for use in Darktable:
