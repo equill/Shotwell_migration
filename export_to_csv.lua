@@ -121,6 +121,10 @@ function main(path)
   -- Extract a hashmap of tags
   tagmap = tags_to_hash(dbd)
 
+  -- Get the ordered list of tags,
+  -- to ensure they exist in Darktable before trying to associate them with images.
+  sorted_tags = sort_table_vals(tagmap)
+
   -- Extract a list of photos
   photomap = extract_photo_details(dbd)
 
