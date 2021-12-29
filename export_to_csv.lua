@@ -10,6 +10,7 @@ DBI = require('DBI')
 -- This will need to be passed by Darktable once it's ready for testing there.
 db_path = 'photo.db'
 
+
 -- Derive a lookup table for tags, from TagTable.
 -- Return a table:
 -- key = integer index as used by Shotwell
@@ -40,6 +41,9 @@ end
 
 -- Create a new, sorted array of values from the input table.
 -- Ignores the indices from the input table and does not modify it.
+-- The reason for doing this is to work with the way Darktable handles hierarchical tags
+-- when creating them: we need to create the parent tags first, then their dependents.
+-- Sorting the tags themselves in lexicographic order puts them in the right order.
 function sort_table_vals(tab)
   -- Create an accumulator
   local newtab = {}
@@ -79,7 +83,7 @@ function main(path)
 
   -- Extract a hashmap of tags
   tagmap = tags_to_hash(dbd)
-  -- for index, tag in pairs(tagmap) do
+  -- PoC: confirm we got them in order, by printing them out.
   for _, tag in pairs(sort_table_vals(tagmap)) do
     print(tag)
   end
