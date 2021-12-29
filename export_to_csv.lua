@@ -61,17 +61,54 @@ function sort_table_vals(tab)
 end
 
 
--- This will become the function that generates a table of metadata from the photo table.
-function print_photo_details(db)
-  print("Preparing to list photographs")
-  statement, err = db:prepare('SELECT filename, rating, backlinks FROM PhotoTable LIMIT 5')
-  assert(statement, err)
-  
-  statement:execute()
-  
-  for row in statement:rows(true) do
-    print(row['filename'] .. " Rating: " .. row['rating'])
+-- Helper function: extract the list of tag indices from the "backlinks" field
+-- and return it as an array of integers.
+-- This is necessary due to the interesting design decision of encoding multiple
+-- separate lists of attributes as a newline-separated series of pipe-separate strings
+-- in a single field.
+function extract_tag_indices(backlinks)
+  -- Create an accumulator
+  local taglist = {}
+
+  -- Check whether it was null.
+  -- If not, carry on with the extraction
+  if backlinks then
+    -- Extract the 'tag=[<number>|]..<newline> sequence,
+    -- and iterate over the numbers within it.
+    indexlist = string.match(backlinks, 'tag=[(%d+)|]*')
+    if indexlist then
+      for index in string.gmatch(indexlist, '(%d+)') do
+        table.insert(taglist, index)
+      end
+    end
   end
+
+  -- Return the accumulator
+  return taglist
+end
+
+
+-- Extract photo data from the database.
+-- Return it as a table:
+-- key = filename
+-- value = {rating: <rating>, tags: {<list of tag indices>}}
+function extract_photo_details(db)
+  -- Fetch the raw data
+  statement, err = db:prepare('SELECT filename, rating, backlinks FROM PhotoTable ORDER BY filename')
+  assert(statement, err)
+  statement:execute()
+
+  -- Create an accumulator
+  local photos = {}
+
+  -- Iterate over the rows, and extract the results
+  for row in statement:rows(true) do
+    photos[row['filename']] = { ["rating"] = row['rating'];
+                                ["tags"] = extract_tag_indices(row['backlinks']) }
+  end
+
+  -- Return the result
+  return photos
 end
 
 
@@ -83,9 +120,13 @@ function main(path)
 
   -- Extract a hashmap of tags
   tagmap = tags_to_hash(dbd)
-  -- PoC: confirm we got them in order, by printing them out.
-  for _, tag in pairs(sort_table_vals(tagmap)) do
-    print(tag)
+
+  -- Extract a list of photos
+  photomap = extract_photo_details(dbd)
+
+  -- PoC: confirm we got the tags in order, by printing them out.
+  for filename, details in pairs(photomap) do
+    print(filename .. ': rating = ' .. details.rating .. '; tags: ' .. table.concat(details.tags, ', '))
   end
 end
 
