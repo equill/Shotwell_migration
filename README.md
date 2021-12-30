@@ -29,6 +29,12 @@ I've been using Darktable to manage photographs that I took myself, and Shotwell
 Due to the way I've been using Shotwell, tags are useful to me but events are not, so I've simply ignored events.
 
 
+## Prerequisites
+
+- [LuaDBI](https://zadzmo.org/code/luadbi/wiki/Quickstart.md)
+    - Used for querying the Shotwell database.
+
+
 ## References
 
 - [Shotwell database architecture page](https://wiki.gnome.org/Apps/Shotwell/Architecture/Database)
