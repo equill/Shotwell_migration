@@ -11,6 +11,11 @@ DBI = require('DBI')
 db_path = 'photo.db'
 
 
+--- Shotwell functions
+--
+-- These are for extracting data from the Shotwell database
+
+
 -- Derive a lookup table for tags, from TagTable.
 -- Return a table:
 -- key = integer index as used by Shotwell
@@ -111,6 +116,15 @@ function extract_photo_details(db)
   return photos
 end
 
+
+--- Darktable functions
+--
+-- These are for importing files, adding tags etc. into Darktable.
+
+
+--- Main section
+--
+-- Functions that make use of everything defined so far
 
 -- Convenient wrapper function that pulls everything together.
 function main(path)
