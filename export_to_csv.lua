@@ -4,6 +4,9 @@
 --
 -- LuaDBI: https://zadzmo.org/code/luadbi/wiki/Quickstart.md
 DBI = require('DBI')
+--
+-- Darktable
+darktable = require('darktable')
 
 -- Set the path to the Shotwell database.
 -- During development, I'm working with a copy in the same directory.
@@ -121,6 +124,18 @@ end
 --
 -- These are for importing files, adding tags etc. into Darktable.
 
+-- Ensure that all the tags from Shotwell are present in Darktable.
+-- Translate between hierarchical-tag formats in the process.
+-- Args:
+-- * tagmap = table of reformatted tags, as returned by tags_to_hash()
+function import_tags(tagmap)
+  for tag in sort_table_vals(tagmap) do
+    if not darktable.tags.find(tag) then
+      darktable.tags.create(tag)
+    end
+  end
+end
+
 
 --- Main section
 --
@@ -135,9 +150,8 @@ function main(path)
   -- Extract a hashmap of tags
   tagmap = tags_to_hash(dbd)
 
-  -- Get the ordered list of tags,
-  -- to ensure they exist in Darktable before trying to associate them with images.
-  sorted_tags = sort_table_vals(tagmap)
+  -- Ensure the tags from Shotwell are in Darktable
+  import_tags(tagmap)
 
   -- Extract a list of photos
   photomap = extract_photo_details(dbd)
